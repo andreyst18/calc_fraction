@@ -1,18 +1,23 @@
 <template>
   <section class="section calculator">
     <div class="calculator__input-fractions input-fractions">
-      <Fraction @add-fraction="addFraction"></Fraction>
-      <PlusSymbol class="input-fractions__plus"></PlusSymbol>
-      <Fraction @add-fraction="addFraction"></Fraction>
-      <ul>
-        <li v-for="(item, index) in additionalFractions" :key="index">
-          <PlusSymbol class="input-fractions__plus"></PlusSymbol>
-          <Fraction @add-fraction="addFraction"></Fraction>
+      <ul class="calculator__additional-fractions additional-fractions">
+        <li class="additional-fractions__item" 
+            v-for="(item, index) in fractions" 
+            :key="item.id"
+        >
+          <Fraction @add-fraction="addFraction" 
+                    :isFirst="index === 0" 
+                    :index="index"
+                    :id="item.id"
+          >
+            <CrossBtn v-if="fractionsQuantity > 2" @delete-fraction="deleteFraction(index)"></CrossBtn>
+          </Fraction>
         </li>
       </ul>
       <EqualSymbol class="input-fractions__equal"></EqualSymbol>
       <div class="input-fractions__result result">
-        <div class="result__whole">{{ getResult[0] }}</div>
+        <div class="result__whole">{{ getResult[0] || '' }}</div>
         <div class="result__fractional fractional">
           <div class="fractional__item">{{ getResult[1] || '' }}</div>
           <div class="fractional__item">{{ getResult[2] || '' }}</div>
@@ -26,44 +31,77 @@
 
 <script>
 import Fraction from "./Fraction.vue";
-import PlusSymbol from "./PlusSymbol.vue";
 import EqualSymbol from "./EqualSymbol.vue";
-import AddFractionBtn from "./AddFractionBtn.vue"
+import AddFractionBtn from "./AddFractionBtn.vue";
+import CrossBtn from "./CrossBtn.vue";
 
 export default {
   components: {
     Fraction,
-    PlusSymbol,
     EqualSymbol,
-    AddFractionBtn
+    AddFractionBtn,
+    CrossBtn
   },
   data() {
     return {
-      fractions: [],
-      additionalFractions: [],
+      fractions: [
+        {
+          id: 0,
+          numerator: '',
+          denominator: ''
+        }
+        , 
+        {
+          id: 1,
+          numerator: '',
+          denominator: ''
+        }
+        ,
+      ],
       result: "?",
       fractionsQuantity: 2,
+      lastID: 1
     };
   },
   methods: {
-    addFraction(numerator, denominator) {
-      this.fractions.push([+numerator, +denominator]);
+    addFraction(numerator, denominator, index, id) {
+      console.log(id)
+      console.log(index)
+      console.log(numerator)
+      this.fractions.splice(index, 1, {
+        id: id,
+        numerator: +numerator,
+        denominator: +denominator
+      });
+      console.log(this.fractions)
 
       if (this.checkResultConditions) {
         this.getResult;
       }
     },
     checkResultConditions() {
-      if (this.fractions.length === this.fractionsQuantity) {
+      if (this.fractions.every( el => el.numerator === +el.numerator &&
+                                      el.denominator === +el.denominator)) {
         return true;
       }
-      return false;
+      return false
     },
     addNewFractionForm() {
       if (this.fractionsQuantity < 5) {
-        this.additionalFractions.push(1);
-        this.fractionsQuantity++
+        this.fractionsQuantity++;
+        console.log(this.fractionsQuantity)
+        this.fractions.push({
+          id: ++this.lastID,
+          numerator: '',
+          denominator: ''
+        });
       }
+      console.log(this.fractions)
+    },
+    deleteFraction(index) {
+      console.log(index)
+      this.fractions.splice(index, 1);
+      this.fractionsQuantity--;
       console.log(this.fractions)
     }
   },
@@ -77,16 +115,17 @@ export default {
       const fractionsModified = [];
       let sum = 0;
       for (let i = 0; i < this.fractions.length; i++) {
-        const multiplier = commonMultiple / this.fractions[i][1];
-        const fractionModified = this.fractions[i].map(
-          (el) => (el *= multiplier)
-        );
+        const multiplier = commonMultiple / this.fractions[i].denominator;
+        const fractionModified = {
+          numerator: this.fractions[i].numerator * multiplier,
+          denominator: this.fractions[i].denominator * multiplier,
+        };
         fractionsModified.push(fractionModified);
-        sum += fractionModified[0];
+        sum += fractionModified.numerator;
       }
-      let wholeResult = Math.floor(sum / fractionsModified[0][1]);
-      let numeratorResult = sum % fractionsModified[0][1];
-      let denominatorResult = fractionsModified[0][1];
+      let wholeResult = Math.floor(sum / fractionsModified[0].denominator);
+      let numeratorResult = sum % fractionsModified[0].denominator;
+      let denominatorResult = fractionsModified[0].denominator;
 
       //Попытка сократить дробь
       let greatestCommonDivisor = 1;
@@ -94,7 +133,6 @@ export default {
         if (numeratorResult % i === 0 && denominatorResult % i === 0) {
           greatestCommonDivisor = i;
         }
-        console.log(greatestCommonDivisor)
       }
 
       denominatorResult = numeratorResult === 0 ? 0 : denominatorResult;
@@ -107,7 +145,7 @@ export default {
     getCommonMultiple() {
       let result = 1;
       this.fractions.forEach((el) => {
-        result *= el[1];
+        result *= el.denominator;
       });
       return result;
     },
@@ -117,6 +155,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+* {
+  margin: 0;
+  padding: 0;
+}
+
 .input-fractions {
   display: flex;
   &__plus,
@@ -128,5 +171,19 @@ export default {
 
 .result {
   display: flex;
+}
+
+.calculator{
+  &__additional-fractions {
+    display: flex;
+  }
+}
+
+.additional-fractions{
+  margin: 0;
+  &__item {
+    display: flex;
+    
+  }
 }
 </style>

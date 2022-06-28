@@ -1,5 +1,7 @@
 <template>
   <div class="fraction">
+    <slot></slot>
+    <PlusSymbol class="input-fractions__plus" v-if="!isFirst"></PlusSymbol>
     <input
       class="fraction__item"
       type="text"
@@ -17,7 +19,18 @@
 </template>
 
 <script>
+
+import PlusSymbol from "./PlusSymbol.vue";
+
 export default {
+  props: {
+    isFirst: Boolean,
+    index: Number,
+    id: Number
+  },
+  components: {
+    PlusSymbol,
+  },
   data() {
     return {
       numerator: "",
@@ -27,24 +40,24 @@ export default {
   methods: {
     checkInputValue(value, isNumerator) {
       value = +value;
-      if (!(value > 0 && 
-          value < 100 && 
-          value === Math.floor(value))) {
+      if (!(value > 0 && value < 100 && value === Math.floor(value))) {
         alert("Неверное значение. Введите целое число от 1 до 99.");
         if (isNumerator) {
-          this.numerator = '';
+          this.numerator = "";
         } else {
-          this.denominator = '';
+          this.denominator = "";
         }
       } else {
         this.getCompleteFraction();
       }
     },
     getCompleteFraction() {
+      const args = [this.numerator, this.denominator, this.index, this.id];
       if (this.numerator && this.denominator) {
-        this.$emit('add-fraction', this.numerator, this.denominator)
+        console.log(this.numerator)
+        this.$emit("add-fraction", ...args);
       }
-    }
+    },
   },
 };
 </script>
