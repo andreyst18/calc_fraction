@@ -19,14 +19,13 @@
 </template>
 
 <script>
-
 import PlusSymbol from "./PlusSymbol.vue";
 
 export default {
   props: {
     isFirst: Boolean,
     index: Number,
-    id: Number
+    id: Number,
   },
   components: {
     PlusSymbol,
@@ -54,7 +53,6 @@ export default {
     getCompleteFraction() {
       const args = [this.numerator, this.denominator, this.index, this.id];
       if (this.numerator && this.denominator) {
-        console.log(this.numerator)
         this.$emit("add-fraction", ...args);
       }
     },

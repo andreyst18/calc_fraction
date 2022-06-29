@@ -1,7 +1,5 @@
 <template>
-  <div>
-
-  </div>
+  <button @click="$emit('save-calc')">Сохранить расчёты</button>
 </template>
 
 <script>
