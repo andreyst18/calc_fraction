@@ -15,10 +15,8 @@
 
 <style lang="scss" scoped>
 .cross {
-  margin-bottom: 30px;
   &__btn {
     position: relative;
-    left: 20px;
   }
   &__line {
     width: 21.5px;

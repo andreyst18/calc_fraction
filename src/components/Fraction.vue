@@ -1,12 +1,14 @@
 <template>
   <div class="fraction">
     <slot></slot>
-    <PlusSymbol class="input-fractions__plus" v-if="!isFirst"></PlusSymbol>
-    <input
+    <PlusSymbol class="fraction__plus" v-if="!isFirst"></PlusSymbol>
+    <div class="fraction__inputs">
+      <input
       class="fraction__item"
       type="text"
       v-model="numerator"
       @change="checkInputValue(numerator, true)"
+      placeholder="00"
     />
     <div class="fraction__line"></div>
     <input
@@ -14,7 +16,10 @@
       type="text"
       v-model="denominator"
       @change="checkInputValue(denominator, false)"
+      placeholder="00"
     />
+    </div>
+    
   </div>
 </template>
 
@@ -61,14 +66,41 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font: {
+      family: 'Open Sans';
+      size: 16px; 
+      weight: 400
+    }
+}
+
 .fraction {
+  display: flex;
+  align-items: center;
   &__line {
     width: 59px;
     height: 1px;
     background: #383129;
+    margin: 10px 0px;
   }
   &__item {
-    width: 40px;
+    width: 59px;
+    height: 48px;
+    text-align: center;
+    border: 1px solid #CBC9C9;
+    border-radius: 5px;
+    &:hover {
+      border: 1px solid #9D9C9C;
+    }
+    &:active {
+      border: 1px solid #383129;
+    }
+  }
+  &__plus {
+    margin: 0 20px;
   }
 }
 </style>

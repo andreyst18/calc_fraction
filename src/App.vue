@@ -1,42 +1,47 @@
 <template>
   <div id="app" class="wrapper">
-    <section class="section calculator">
-      <h2 class="calculator__title">Калькулятор</h2>
-      <div class="calculator__input-fractions input-fractions">
-        <ul class="calculator__additional-fractions additional-fractions">
-          <li
-            class="additional-fractions__item"
-            v-for="(item, index) in fractions"
-            :key="item.id"
-          >
-            <Fraction
-              @add-fraction="addFraction"
-              :isFirst="index === 0"
-              :index="index"
-              :id="item.id"
+    <section class="calculator">
+      <h2 class="calculator__title title">Калькулятор</h2>
+      <div class="calculator__main">
+        <div class="calculator__input-fractions input-fractions">
+          <ul class="input-fractions__list">
+            <li
+              class="input-fractions__item"
+              v-for="(item, index) in fractions"
+              :key="item.id"
             >
-              <CrossBtn
-                v-if="fractionsQuantity > 2"
-                @delete-fraction="deleteFraction(index)"
-              ></CrossBtn>
-            </Fraction>
-          </li>
-        </ul>
-        <EqualSymbol class="input-fractions__equal"></EqualSymbol>
-        <div class="input-fractions__result result">
-          <div class="result__whole">{{ getResult[0] || "" }}</div>
-          <div class="result__fractional fractional">
-            <div class="fractional__item">{{ getResult[1] || "" }}</div>
-            <div class="fractional__item">{{ getResult[2] || "" }}</div>
+              <Fraction
+                @add-fraction="addFraction"
+                :isFirst="index === 0"
+                :index="index"
+                :id="item.id"
+                class="input-fractions__fraction"
+              >
+                <CrossBtn
+                  v-show="fractionsQuantity > 2"
+                  @delete-fraction="deleteFraction(index)"
+                  class="input-fractions__cross"
+                ></CrossBtn>
+              </Fraction>
+            </li>
+          </ul>
+          <EqualSymbol class="input-fractions__equal"></EqualSymbol>
+          <div class="input-fractions__result result">
+            <div class="result__whole">{{ getResult[0] || "" }}</div>
+            <div class="result__fractional fractional">
+              <div class="fractional__item"><div>{{ getResult[1] || "" }}</div></div>
+              <div class="fractional__line" v-if="getResult[2]"></div>
+              <div class="fractional__item"><div>{{ getResult[2] || "" }}</div></div>
+            </div>
           </div>
         </div>
+        <AddFractionBtn class="calculator__new-fraction-btn" @add-fraction="addNewFractionForm()"></AddFractionBtn
+        ><br />
+        <SaveCalcBtn @save-calc="saveCalculation"></SaveCalcBtn>
       </div>
-      <AddFractionBtn @add-fraction="addNewFractionForm()"></AddFractionBtn
-      ><br />
-      <SaveCalcBtn @save-calc="saveCalculation"></SaveCalcBtn>
     </section>
     <section class="calculations">
-      <h2 class="calculations__title">Расчеты</h2>
+      <h2 class="calculations__title title">Расчеты</h2>
       <ul class="calculations__list list">
         <li
           class="list__item"
@@ -53,6 +58,10 @@
             </li>
           </ul>
           <div class="expression__result">{{ savedResults[indexOuter] }}</div>
+          <DeleteBtn
+            @delete-calculation="deleteCalculation"
+            :index="indexOuter"
+          ></DeleteBtn>
         </li>
       </ul>
     </section>
@@ -65,6 +74,7 @@ import EqualSymbol from "./components/EqualSymbol.vue";
 import AddFractionBtn from "./components/AddFractionBtn.vue";
 import CrossBtn from "./components/CrossBtn.vue";
 import SaveCalcBtn from "./components/SaveCalcBtn.vue";
+import DeleteBtn from "./components/DeleteBtn.vue";
 
 export default {
   name: "App",
@@ -74,6 +84,7 @@ export default {
     AddFractionBtn,
     CrossBtn,
     SaveCalcBtn,
+    DeleteBtn,
   },
   data() {
     return {
@@ -142,10 +153,7 @@ export default {
         this.getResult[2],
       ]);
 
-      const serializedFractions = JSON.stringify(this.savedFractions);
-      const serializedResults = JSON.stringify(this.savedResults);
-      localStorage.setItem("fractions", serializedFractions);
-      localStorage.setItem("results", serializedResults);
+      this.updateLocalstorage();
 
       ++this.lastID;
       this.fractions = [
@@ -160,6 +168,16 @@ export default {
           denominator: "",
         },
       ];
+    },
+    updateLocalstorage() {
+      const serializedFractions = JSON.stringify(this.savedFractions);
+      const serializedResults = JSON.stringify(this.savedResults);
+      localStorage.setItem("fractions", serializedFractions);
+      localStorage.setItem("results", serializedResults);
+    },
+    deleteCalculation(index) {
+      this.savedFractions.splice(index, 1);
+      this.updateLocalstorage();
     },
   },
   computed: {
@@ -212,34 +230,85 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&family=Roboto&display=swap");
+
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+  font-family: "Open Sans", sans-serif;
+}
+
+.wrapper {
+  margin: 0 auto;
+  max-width: 950px;
+  padding: 50px 15px;
 }
 
 .input-fractions {
   display: flex;
-  &__plus,
-  &__equal,
-  &__result {
-    padding: 15px;
+  &__list {
+    display: flex;
   }
+  &__item {
+    position: relative;
+    list-style: none;
+  }
+  &__equal {
+    margin: 0 20px;
+  }
+  &__fraction {
+    position: relative;
+  }
+  &__cross {
+    position: absolute;
+    top: -20px;
+    right: 0;
+  }
+
 }
 
 .result {
   display: flex;
+  align-items: center;
+  font-weight: 600;
+
 }
 
 .calculator {
-  &__additional-fractions {
+  &__main {
+    padding: 39px 0px 44px 30px;
+    border: 1px solid #f2f2f2;
+    box-shadow: 0px 1px 8px rgba(64, 42, 22, 0.03);
+    border-radius: 8px;
+  }
+  &__input-fractions {
     display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  &__title {
+    margin-bottom: 22px;
+  }
+  &__new-fraction-btn {
+    margin-bottom: 20px;
   }
 }
 
-.additional-fractions {
-  margin: 0;
+.fractional {
+  margin-left: 10px;
+  &__line {
+    width: 59px;
+    height: 1px;
+    background: #383129;
+    margin: 10px 0;
+  }
   &__item {
+    width: 59px;
+    height: 48px;
     display: flex;
+    justify-content: center;
+    align-items: center;
   }
 }
 </style>
