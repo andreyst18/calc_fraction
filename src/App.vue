@@ -2,7 +2,7 @@
   <div id="app" class="wrapper">
     <section class="calculator">
       <h2 class="calculator__title title">Калькулятор</h2>
-      <div class="calculator__main">
+      <div class="main">
         <div class="calculator__input-fractions input-fractions">
           <ul class="input-fractions__list">
             <li
@@ -29,41 +29,90 @@
           <div class="input-fractions__result result">
             <div class="result__whole">{{ getResult[0] || "" }}</div>
             <div class="result__fractional fractional">
-              <div class="fractional__item"><div>{{ getResult[1] || "" }}</div></div>
-              <div class="fractional__line" v-if="getResult[2]"></div>
-              <div class="fractional__item"><div>{{ getResult[2] || "" }}</div></div>
+              <div class="fractional__item">
+                <div>{{ getResult[1] || "" }}</div>
+              </div>
+              <div class="line" v-if="getResult[2]"></div>
+              <div class="fractional__item">
+                <div>{{ getResult[2] || "" }}</div>
+              </div>
             </div>
           </div>
         </div>
-        <AddFractionBtn class="calculator__new-fraction-btn" @add-fraction="addNewFractionForm()"></AddFractionBtn
+        <AddFractionBtn
+          class="calculator__new-fraction-btn"
+          @add-fraction="addNewFractionForm()"
+        ></AddFractionBtn
         ><br />
         <SaveCalcBtn @save-calc="saveCalculation"></SaveCalcBtn>
       </div>
     </section>
     <section class="calculations">
       <h2 class="calculations__title title">Расчеты</h2>
-      <ul class="calculations__list list">
-        <li
-          class="list__item"
-          v-for="(itemOuter, indexOuter) in savedFractions"
-          :key="indexOuter"
+      <div class="main">
+        <div
+          class="calculations__default-text"
+          v-if="!this.savedFractions.length > 0"
         >
-          <ul class="expression">
-            <li
-              class="expression__item"
-              v-for="(itemInner, indexInner) in savedFractions[indexOuter]"
-              :key="indexInner"
-            >
-              {{ itemInner.numerator / itemInner.denominator }}
-            </li>
-          </ul>
-          <div class="expression__result">{{ savedResults[indexOuter] }}</div>
-          <DeleteBtn
-            @delete-calculation="deleteCalculation"
-            :index="indexOuter"
-          ></DeleteBtn>
-        </li>
-      </ul>
+          Тут будут расчеты
+        </div>
+        <ul class="calculations__list list">
+          <li
+            class="list__item"
+            v-for="(itemOuter, indexOuter) in savedFractions"
+            :key="indexOuter"
+          >
+            <div class="calculations__expression">
+              <ul class="expression list">
+                <li
+                  class="expression__item"
+                  v-for="(itemInner, indexInner) in savedFractions[indexOuter]"
+                  :key="indexInner"
+                >
+                  <PlusSymbol
+                    v-if="indexInner !== 0"
+                    class="expression__plus"
+                  ></PlusSymbol>
+
+                  <div class="expression__fraction">
+                    <div class="expression__number fractional__item">
+                      {{ itemInner.numerator }}
+                    </div>
+                    <div class="line"></div>
+                    <div class="expression__number fractional__item">
+                      {{ itemInner.denominator }}
+                    </div>
+                  </div>
+                </li>
+              </ul>
+              <div class="expression__equal">
+                <EqualSymbol></EqualSymbol>
+              </div>
+              <div class="expression__result result">
+                <div class="result__whole" v-if="savedResults[indexOuter][0]">
+                  {{ savedResults[indexOuter][0] }}
+                </div>
+                <div class="result__fractional fractional">
+                  <div class="fractional__item">
+                    <div>{{ savedResults[indexOuter][1] }}</div>
+                  </div>
+                  <div class="line"></div>
+                  <div class="fractional__item">
+                    <div>{{ savedResults[indexOuter][2] }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="expression__delete-btn">
+              <DeleteBtn
+                @delete-calculation="deleteCalculation"
+                :index="indexOuter"
+              ></DeleteBtn>
+            </div>
+          </li>
+        </ul>
+      </div>
     </section>
   </div>
 </template>
@@ -75,6 +124,7 @@ import AddFractionBtn from "./components/AddFractionBtn.vue";
 import CrossBtn from "./components/CrossBtn.vue";
 import SaveCalcBtn from "./components/SaveCalcBtn.vue";
 import DeleteBtn from "./components/DeleteBtn.vue";
+import PlusSymbol from "./components/PlusSymbol.vue";
 
 export default {
   name: "App",
@@ -85,6 +135,7 @@ export default {
     CrossBtn,
     SaveCalcBtn,
     DeleteBtn,
+    PlusSymbol,
   },
   data() {
     return {
@@ -145,29 +196,30 @@ export default {
       this.fractionsQuantity--;
     },
     saveCalculation() {
-      console.log(this.fractions);
-      this.savedFractions.push(this.fractions);
-      this.savedResults.push([
-        this.getResult[0],
-        this.getResult[1],
-        this.getResult[2],
-      ]);
+      if (this.checkResultConditions()) {
+        this.savedFractions.push(this.fractions);
+        this.savedResults.push([
+          this.getResult[0],
+          this.getResult[1],
+          this.getResult[2],
+        ]);
 
-      this.updateLocalstorage();
+        this.updateLocalstorage();
 
-      ++this.lastID;
-      this.fractions = [
-        {
-          id: this.lastID,
-          numerator: "",
-          denominator: "",
-        },
-        {
-          id: ++this.lastID,
-          numerator: "",
-          denominator: "",
-        },
-      ];
+        ++this.lastID;
+        this.fractions = [
+          {
+            id: this.lastID,
+            numerator: "",
+            denominator: "",
+          },
+          {
+            id: ++this.lastID,
+            numerator: "",
+            denominator: "",
+          },
+        ];
+      }
     },
     updateLocalstorage() {
       const serializedFractions = JSON.stringify(this.savedFractions);
@@ -265,23 +317,23 @@ export default {
     top: -20px;
     right: 0;
   }
-
 }
 
 .result {
   display: flex;
   align-items: center;
   font-weight: 600;
+}
 
+.main {
+  padding: 40px 30px;
+  border: 1px solid #f2f2f2;
+  box-shadow: 0px 1px 8px rgba(64, 42, 22, 0.03);
+  border-radius: 8px;
 }
 
 .calculator {
-  &__main {
-    padding: 39px 0px 44px 30px;
-    border: 1px solid #f2f2f2;
-    box-shadow: 0px 1px 8px rgba(64, 42, 22, 0.03);
-    border-radius: 8px;
-  }
+  margin-bottom: 38px;
   &__input-fractions {
     display: flex;
     align-items: center;
@@ -297,18 +349,58 @@ export default {
 
 .fractional {
   margin-left: 10px;
-  &__line {
-    width: 59px;
-    height: 1px;
-    background: #383129;
-    margin: 10px 0;
-  }
   &__item {
     width: 59px;
     height: 48px;
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+}
+
+.line {
+  width: 59px;
+  height: 1px;
+  background: #383129;
+  margin: 10px 0;
+}
+
+.calculations {
+  &__title {
+    margin-bottom: 10px;
+  }
+  &__default-text {
+    text-align: center;
+    font-weight: 400;
+    font-size: 16px;
+    color: #9d9c9c;
+  }
+  &__expression {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.list {
+  list-style: none;
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.expression {
+  display: flex;
+  &__item {
+    display: flex;
+    align-items: center;
+  }
+  &__plus {
+    margin: 0 20px;
+  }
+  &__equal {
+    margin: 0 20px;
   }
 }
 </style>
