@@ -242,9 +242,7 @@ export default {
     },
     updateLocalstorage() {
       const serializedFractions = JSON.stringify(this.savedFractions);
-      // const serializedResults = JSON.stringify(this.savedResults);
       localStorage.setItem("fractions", serializedFractions);
-      // localStorage.setItem("results", serializedResults);
     },
     deleteCalculation(index) {
       this.savedFractions.splice(index, 1);
