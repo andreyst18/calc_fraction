@@ -60,13 +60,14 @@
           <li
             class="list__item"
             v-for="(itemOuter, indexOuter) in savedFractions"
-            :key="indexOuter"
+            :key="itemOuter.id"
           >
             <div class="calculations__expression">
               <ul class="expression list">
                 <li
                   class="expression__item"
-                  v-for="(itemInner, indexInner) in savedFractions[indexOuter]"
+                  v-for="(itemInner, indexInner) in savedFractions[indexOuter]
+                    .fractions"
                   :key="indexInner"
                 >
                   <PlusSymbol
@@ -89,16 +90,29 @@
                 <EqualSymbol></EqualSymbol>
               </div>
               <div class="expression__result result">
-                <div class="result__whole" v-if="savedResults[indexOuter][0]">
-                  {{ savedResults[indexOuter][0] }}
+                <div
+                  class="result__whole"
+                  v-if="savedFractions[indexOuter].results.whole"
+                >
+                  {{ savedFractions[indexOuter].results.whole }}
                 </div>
                 <div class="result__fractional fractional">
                   <div class="fractional__item">
-                    <div>{{ savedResults[indexOuter][1] }}</div>
+                    <div>
+                      {{ savedFractions[indexOuter].results.numerator || "" }}
+                    </div>
                   </div>
-                  <div class="line"></div>
+                  <div
+                    class="line"
+                    v-if="
+                      savedFractions[indexOuter].results.numerator &&
+                      savedFractions[indexOuter].results.denominator
+                    "
+                  ></div>
                   <div class="fractional__item">
-                    <div>{{ savedResults[indexOuter][2] }}</div>
+                    <div>
+                      {{ savedFractions[indexOuter].results.denominator || "" }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -155,7 +169,7 @@ export default {
       fractionsQuantity: 2,
       lastID: 1,
       savedFractions: JSON.parse(localStorage.getItem("fractions")) || [],
-      savedResults: JSON.parse(localStorage.getItem("results")) || [],
+      saveID: 1,
     };
   },
   methods: {
@@ -197,13 +211,16 @@ export default {
     },
     saveCalculation() {
       if (this.checkResultConditions()) {
-        this.savedFractions.push(this.fractions);
-        this.savedResults.push([
-          this.getResult[0],
-          this.getResult[1],
-          this.getResult[2],
-        ]);
-
+        this.savedFractions.push({
+          id: this.saveID,
+          fractions: this.fractions,
+          results: {
+            whole: this.getResult[0],
+            numerator: this.getResult[1],
+            denominator: this.getResult[2],
+          },
+        });
+        this.saveID++;
         this.updateLocalstorage();
 
         ++this.lastID;
@@ -219,13 +236,15 @@ export default {
             denominator: "",
           },
         ];
+
+        this.fractionsQuantity = 2;
       }
     },
     updateLocalstorage() {
       const serializedFractions = JSON.stringify(this.savedFractions);
-      const serializedResults = JSON.stringify(this.savedResults);
+      // const serializedResults = JSON.stringify(this.savedResults);
       localStorage.setItem("fractions", serializedFractions);
-      localStorage.setItem("results", serializedResults);
+      // localStorage.setItem("results", serializedResults);
     },
     deleteCalculation(index) {
       this.savedFractions.splice(index, 1);
